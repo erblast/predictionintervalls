@@ -4,8 +4,7 @@ from setuptools import setup
 
 setup(name='predictionintervalls',
       version='0.0.1',
-      description='calculate prediction intervalls for a given set of predicted\
-       and observed values',
+      description='calculate prediction intervalls for a given set of predicted and observed values',
       url='https://github.com/erblast/predictionintervalls',
       author='Bjoern Koneswarakantha',
       author_email='bjoern.koneswarakantha@roche.com',
