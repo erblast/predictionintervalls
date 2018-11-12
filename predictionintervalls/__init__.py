@@ -3,7 +3,8 @@ import sklearn
 import pandas as pd
 from statsmodels.distributions.empirical_distribution import ECDF
 from sklearn.linear_model import LinearRegression
-from boot import boot
+import predictionintervalls as pi
+from predictionintervalls.boot import boot
 from tqdm import tqdm
 
 def predictionintervalls( obs, pred
@@ -42,7 +43,7 @@ def predictionintervalls( obs, pred
     LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False)
     >>> pred = reg.predict(X)
     
-    >>> df_pi = predictionintervalls(pred = pred, obs = y)
+    >>> df_pi = pi.predictionintervalls(pred = pred, obs = y)
     >>> df_pi.shape
     (1012, 14)
     >>> df_pi.columns.format()
