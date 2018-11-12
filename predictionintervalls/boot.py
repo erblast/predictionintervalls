@@ -7,7 +7,6 @@ from resample import permutation, bootstrap, utils
 from sklearn.datasets import load_boston
 from statsmodels.distributions.empirical_distribution import ECDF
 
-quantiles = [0.025, 0.125, 0.5, 0.875, 0.975]
 
 def sum_stats(x, fun, **kwargs):
     
@@ -23,11 +22,11 @@ def sum_stats(x, fun, **kwargs):
 def get_stats(s):
     
     ecdf = ECDF(s)
-    
+        
     return {"mean": np.mean(s),
             "std": np.std(s, ddof=1),
-            "ecdf": ecdf(x),
-            "quantiles": pd.Series(s).quantile(quantiles).values
+            "ecdf": ecdf(__boot_x),
+            "quantiles": pd.Series(s).quantile(__boot_quantiles).values
              }
 
 
@@ -50,7 +49,7 @@ def aggregate_boot_results(boot):
     return df_agg
         
 
-def shape(df_agg, x):
+def shape(df_agg, x, quantiles):
     
     results = list()
     
@@ -98,23 +97,46 @@ def boot(x, r = 1000 , quantiles = [0.025, 0.125, 0.5, 0.875, 0.975]):
         qu_*: quantile boundaries
         
     Example:
-    
-        
+    >>> x = np.random.randn(25)
+    >>> df_boot = boot(x)
+    >>> df_boot.shape
+    (50, 10)
+    >>> df_boot.columns.format()
+    ['boot_stat', 'values', 'ecdf', 'me', 'sd', 'qu_025', 'qu_125', 'qu_5', 'qu_875', 'qu_975']
+    >>> df_boot['boot_stat'].unique().tolist()
+    ['me', 'sd']
     """
     
-    b = bootstrap.bootstrap(x, f=get_stats, b=r)
+    # the current version of resample does not allow us to pass kwargs to
+    # get_stats() we therefore need to use this ugly hack, to pass the variables
+    
+    global __boot_x
+    global __boot_quantiles
+    
+    __boot_x = x
+    __boot_quantiles = quantiles
+    
+    b = bootstrap.bootstrap( __boot_x, f=get_stats, b=r)
     
     df_agg = aggregate_boot_results(b)
     
-    df =shape(df_agg, x)
+    df =shape(df_agg, x, quantiles)
     
     return df
     
 
 if __name__ == '__main__':
     
+    quantiles = [0.025, 0.125, 0.5, 0.875, 0.975]
+    
     x = np.random.randn(25)
-
-    print( boot(x) )
+    
+    df_boot = boot(x)
+    
+    print( df_boot.shape )
+    
+    print( df_boot.columns.format() )
+    
+    print( df_boot['boot_stat'].unique() )
 
     
