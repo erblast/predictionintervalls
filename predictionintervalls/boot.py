@@ -105,6 +105,10 @@ def boot(x, r = 1000 , quantiles = [0.025, 0.125, 0.5, 0.875, 0.975]):
     ['boot_stat', 'values', 'ecdf', 'me', 'sd', 'qu_025', 'qu_125', 'qu_5', 'qu_875', 'qu_975']
     >>> df_boot['boot_stat'].unique().tolist()
     ['me', 'sd']
+    
+    Tests:
+    # take pd.Series
+    >>> df_boot = pd.Series( x )
     """
     
     # the current version of resample does not allow us to pass kwargs to
@@ -115,6 +119,12 @@ def boot(x, r = 1000 , quantiles = [0.025, 0.125, 0.5, 0.875, 0.975]):
     
     __boot_x = x
     __boot_quantiles = quantiles
+    
+    try:
+        __boot_x = __boot_x.values
+    except AttributeError as e:
+        pass
+    
     
     b = bootstrap.bootstrap( __boot_x, f=get_stats, b=r)
     
@@ -138,5 +148,7 @@ if __name__ == '__main__':
     print( df_boot.columns.format() )
     
     print( df_boot['boot_stat'].unique() )
+    
+    df_boot = pd.Series( x )
 
     
