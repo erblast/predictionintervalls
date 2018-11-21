@@ -3,5 +3,5 @@ calculate prediction intervalls for a given set of predicted vs actual observed 
 
 # Install
 ```
-pip install git+https://github.com/erblast/predictionintervals.git
+pip install git+https://github.com/erblast/predintervals.git
 ```

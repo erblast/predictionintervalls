@@ -79,12 +79,12 @@ def shape(df_agg, x, quantiles):
     
 def boot(x, r = 1000 , quantiles = [0.025, 0.125, 0.5, 0.875, 0.975]):
     """
-    calculates bootstrap statistics relevant for prediction intervalls of a
+    calculates bootstrap statistics relevant for prediction intervals of a
     given sample
     
     param x: array-like, sample
     param r: int, number of resamples, Default: 1000
-    param quantiles: array-like, floats between 0-1 denoting the intervall
+    param quantiles: array-like, floats between 0-1 denoting the interval
     boundaries that should be included.
     
     return: pandas DataFrame,
