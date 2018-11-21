@@ -18,14 +18,14 @@ def sum_stats(x, fun, **kwargs):
     return  [ agg.values ]
     
     
-def get_stats(s):
+def get_stats(sample_boot, sample_original, quantiles):
     
-    ecdf = ECDF(s)
+    ecdf = ECDF(sample_boot)
         
-    return {"mean": np.mean(s),
-            "std": np.std(s, ddof=1),
-            "ecdf": ecdf(__boot_x),
-            "quantiles": pd.Series(s).quantile(__boot_quantiles).values
+    return {"mean": np.mean(sample_boot),
+            "std": np.std(sample_boot, ddof=1),
+            "ecdf": ecdf(sample_original),
+            "quantiles": pd.Series(sample_boot).quantile(quantiles).values
              }
 
 
@@ -77,12 +77,12 @@ def shape(df_agg, x, quantiles):
         
     return pd.concat( results, axis = 0, ignore_index=True )
     
-def boot(x, r = 1000 , quantiles = [0.025, 0.125, 0.5, 0.875, 0.975]):
+def boot( sample, r = 1000 , quantiles = [0.025, 0.125, 0.5, 0.875, 0.975]):
     """
     calculates bootstrap statistics relevant for prediction intervals of a
     given sample
     
-    param x: array-like, sample
+    param sample: array-like, sample
     param r: int, number of resamples, Default: 1000
     param quantiles: array-like, floats between 0-1 denoting the interval
     boundaries that should be included.
@@ -109,27 +109,20 @@ def boot(x, r = 1000 , quantiles = [0.025, 0.125, 0.5, 0.875, 0.975]):
     # take pd.Series
     >>> df_boot = pd.Series( x )
     """
-    
-    # the current version of resample does not allow us to pass kwargs to
-    # get_stats() we therefore need to use this ugly hack, to pass the variables
-    
-    global __boot_x
-    global __boot_quantiles
-    
-    __boot_x = x
-    __boot_quantiles = quantiles
-    
+        
     try:
-        __boot_x = __boot_x.values
+        sample = sample.values
     except AttributeError as e:
         pass
     
+    f = lambda sample_boot: get_stats(sample_boot, sample_original = sample
+                                      , quantiles = quantiles)
     
-    b = bootstrap.bootstrap( __boot_x, f=get_stats, b=r)
+    b = bootstrap.bootstrap( sample, f = f , b=r)
     
     df_agg = aggregate_boot_results(b)
     
-    df =shape(df_agg, x, quantiles)
+    df = shape(df_agg, sample, quantiles)
     
     return df
     

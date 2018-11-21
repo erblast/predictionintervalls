@@ -3,7 +3,7 @@
 
 
 import sys
-sys.path.append('./predictionintervalls')
+sys.path.append('./predintervals')
 
 # import __init__ as m
 import boot as b

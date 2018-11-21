@@ -3,18 +3,18 @@ import sklearn
 import pandas as pd
 from statsmodels.distributions.empirical_distribution import ECDF
 from sklearn.linear_model import LinearRegression
-import predictionintervalls as pi
-from predictionintervalls.boot import boot
+import predintervals as pi
+from predintervals.boot import boot
 from tqdm import tqdm
 
-def predictionintervalls( obs, pred
+def predintervals( obs, pred
                          , id = None
                          , step_size = 25
                          , r = 1000
                          , quantiles = [0.025, 0.125, 0.5, 0.875, 0.975]):
     """
     for a given set of observations and predictions calculates prediction
-    intervalls, mean and sd and single ecdf values. Sorts the predictions
+    intervals, mean and sd and single ecdf values. Sorts the predictions
     and groups them into steps for each of which the summary statistics will
     be bootstrapped.
     
@@ -23,7 +23,7 @@ def predictionintervalls( obs, pred
     param ids: array-like, ids will be preserved in returned dataframe
     param step_size: int, number of predictions to group into one step
     param r: int, number of resamples
-    param quantiles: array-like, floats between 0-1 denoting the intervall
+    param quantiles: array-like, floats between 0-1 denoting the interval
     boundaries that should be included.
     
     return: pandas DataFrame,
@@ -43,7 +43,7 @@ def predictionintervalls( obs, pred
     LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False)
     >>> pred = reg.predict(X)
     
-    >>> df_pi = pi.predictionintervalls(pred = pred, obs = y)
+    >>> df_pi = pi.predintervals(pred = pred, obs = y)
     >>> df_pi.shape
     (1012, 14)
     >>> df_pi.columns.format()
@@ -107,7 +107,7 @@ if __name__ == '__main__':
 
     pred = reg.predict(X)
 
-    df_pi = predictionintervalls(pred = pred, obs = y)
+    df_pi = predintervals(pred = pred, obs = y)
             
     print( df_pi.shape)
     
