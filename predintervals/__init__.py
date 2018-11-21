@@ -47,7 +47,7 @@ def predintervals( obs, pred
     >>> df_pi.shape
     (1012, 14)
     >>> df_pi.columns.format()
-    ['id', 'obs', 'pred', 'rwn', 'cut', 'boot_stat', 'ecdf', 'me', 'sd', 'qu_025', 'qu_125', 'qu_5', 'qu_875', 'qu_975']
+    ['id', 'obs', 'pred', 'rwn', 'cut', 'boot_stat', 'ecdf_results', 'me', 'sd', 'qu_025', 'qu_125', 'qu_5', 'qu_875', 'qu_975']
     >>> df_pi['boot_stat'].unique().tolist()
     ['me', 'sd']
     """

@@ -22,10 +22,11 @@ def get_stats(sample_boot, sample_original, quantiles):
     
     ecdf = ECDF(sample_boot)
         
-    return {"mean": np.mean(sample_boot),
-            "std": np.std(sample_boot, ddof=1),
-            "ecdf": ecdf(sample_original),
-            "quantiles": pd.Series(sample_boot).quantile(quantiles).values
+    return {'mean': np.mean(sample_boot),
+            'std': np.std(sample_boot, ddof=1),
+            'ecdf_results': ecdf(sample_original),
+            'ecdf_function': ecdf
+            'quantiles': pd.Series(sample_boot).quantile(quantiles).values
              }
 
 
@@ -34,7 +35,7 @@ def aggregate_boot_results(boot):
     df_res = pd.DataFrame(dict( boot = boot) ) \
         .assign( me = lambda x: x.iloc[:,0].apply( lambda x: x['mean'])
                 , std = lambda x: x.iloc[:,0].apply( lambda x: x['std'])
-                , ecdf = lambda x: x.iloc[:,0].apply( lambda x: x['ecdf'])
+                , ecdf = lambda x: x.iloc[:,0].apply( lambda x: x['ecdf_results'])
                 , quantiles = lambda x: x.iloc[:,0].apply( lambda x: x['quantiles']) ) \
         .drop('boot', axis=1)
         
@@ -55,12 +56,12 @@ def shape(df_agg, x, quantiles):
     for stat in ['me', 'sd']:
         
         df = pd.DataFrame( dict( values = x
-                                     , ecdf = df_agg.loc[stat,'ecdf'][0]
+                                     , ecdf = df_agg.loc[stat,'ecdf_results'][0]
                                      , sd = df_agg.loc[stat, 'std'][0][0]
                                      , me = df_agg.loc[stat, 'me'][0][0]
                                      , boot_stat = stat
                                      ) ) \
-          .loc[:, ['boot_stat', 'values', 'ecdf', 'me', 'sd'] ]
+          .loc[:, ['boot_stat', 'values', 'ecdf_results', 'me', 'sd'] ]
                                      
         names_quantiles = [ ('qu_' + str(q)).replace('0.','') for q in quantiles  ]
         tuple_quantiles = ( (name, val) for name, val in zip(names_quantiles, df_agg.loc[stat,'quantiles'][0])  )
@@ -101,7 +102,7 @@ def boot( sample, r = 1000 , quantiles = [0.025, 0.125, 0.5, 0.875, 0.975]):
     >>> df_boot.shape
     (50, 10)
     >>> df_boot.columns.format()
-    ['boot_stat', 'values', 'ecdf', 'me', 'sd', 'qu_025', 'qu_125', 'qu_5', 'qu_875', 'qu_975']
+    ['boot_stat', 'values', 'ecdf_results', 'me', 'sd', 'qu_025', 'qu_125', 'qu_5', 'qu_875', 'qu_975']
     >>> df_boot['boot_stat'].unique().tolist()
     ['me', 'sd']
     
