@@ -71,7 +71,7 @@ def predintervals( obs, pred
         
         df_slice = df.query('cut == "{}"'.format(cut) )
 
-        df_boot = boot( df_slice['obs'].values, r, quantiles )
+        df_boot, _ = boot( df_slice['obs'].values, r, quantiles )
 
         df_tot = pd.concat( [df_slice] * 2, axis = 0, ignore_index=True ) \
             .reset_index() \
