@@ -112,7 +112,8 @@ class PredIntervals():
         # aggregate the observed values and the ids by segment/cut
         df_aggr = df_merge.groupby('cut') \
             .aggregate( dict( obs = lambda x: list(x)
-                             , id = lambda x: list(x) ) )
+                             , id = lambda x: list(x) ) ) \
+            .reset_index()
         
         # get predictions for each set of segmen/cut, Boot instances, observations
         # and ids
