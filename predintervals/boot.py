@@ -155,11 +155,12 @@ class Boot():
         
         return None
         
-    def predict(self, sample):
+    def predict(self, sample, ids = None):
         """
         calculate ecd values for a set of values using the fitted ecdfs
         
         return: pandas DataFrame,
+            id: id column, will add sequential id if none provided
             boot_stat: either 'me' or 'se', so its either the mean or the sd aggregate
             values: the original values
             ecdf: result of statsmodels.distributions.empirical_distribution.ECDF
@@ -172,16 +173,46 @@ class Boot():
         >>> x = np.random.randn(25)
         >>> boot = Boot()
         >>> boot.fit(x)
-        >>> boot.predict(x)
-        boot_stat ...
+        >>> df_pred = boot.predict(x)
+        >>> df_pred.columns.tolist()
+        ['id', 'boot_stat', 'values', 'ecdf_results', 'me', 'sd', 'qu_025', 'qu_125', 'qu_5', 'qu_875', 'qu_975']
+        
+        # IDs will be maintained
+        >>> boot = Boot()
+        >>> boot.fit(x)
+        >>> ids = range(25, len(x) + 25 )
+        >>> df_pred = boot.predict(x, ids)
+        >>> df_pred['id'].sort_values().unique().tolist()[0:10]
+        [25, 26, 27, 28, 29, 30, 31, 32, 33, 34]
         """
+        
+        # convert pd.Series to values
+        try:
+            sample = sample.values
+        except AttributeError as e:
+            pass
+
+
+        # check id input
+        if ids is None:
+            ids = range(0, len(sample) )
+        else:
+            
+            try:
+                ids = ids.values
+            except AttributeError as e:
+                pass
+                
+            assert len(sample) == len(ids), 'sample and ids input have different lengths'
         
         apply_ecdfs = lambda x: [ f(x) for f in self.ecdfs ]
         
-        df = pd.DataFrame( dict( values = sample) ) \
+        df_id = pd.DataFrame( dict( values = sample, id = ids) )
+        
+        df = pd.DataFrame( dict( values = sample ) ) \
              .assign( ecdf_results = lambda x: x['values'].apply( apply_ecdfs ) ) \
-             .assign( me = lambda x:x.ecdf_results.apply( np.mean )
-                      , sd = lambda x:x.ecdf_results.apply( lambda x: np.std(x, ddof=1) ) ) \
+             .assign( me = lambda x: x.ecdf_results.apply( np.mean )
+                      , sd = lambda x: x.ecdf_results.apply( lambda x: np.std(x, ddof=1) ) ) \
              .drop('ecdf_results', axis = 1) \
              .set_index( 'values' ) \
              .stack() \
@@ -195,6 +226,32 @@ class Boot():
              .rename( dict(index = 'boot_stat'), axis = 1) \
              .sort_values('values') \
              .reset_index(drop = True)
+        
+        # bring id back in
+        col = ['id']
+        col.extend( df.columns.tolist() )
+        
+        df = df.merge(df_id, on = 'values') \
+            .drop_duplicates() \
+            .loc[:,col]
+        
+        # test correct id incorporation
+        assert df.shape[0] == len(sample) * 2
+        
+        df_test = df.loc[:,['values','id']] \
+            .assign( n = None ) \
+            .groupby(['values','id']) \
+            .aggregate( dict(n = 'size') ) \
+            .reset_index() \
+            .loc[:,['values','id']] \
+            .sort_values('id')\
+            .reset_index(drop = True)
+            
+        df_id = df_id \
+            .sort_values('id') \
+            .reset_index(drop = True)
+            
+        assert df_test.equals( df_id )
             
         return df
              

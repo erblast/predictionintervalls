@@ -5,14 +5,22 @@
 import sys
 sys.path.append('./predintervals')
 
-# import __init__ as m
-import boot as b
-# import __init__ as pi
+import boot as b_file
+import pi as pi_file
+
+import predintervals as pi
+
+import doctest
 
 if __name__ == '__main__':
+    
 
-    import doctest
-    doctest.testmod( m = b, verbose=True
+    doctest.testmod( m = b_file, verbose=True
                     , optionflags=doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE
                     )
-    #doctest.testmod( m = pi, verbose=True, optionflags=doctest.ELLIPSIS)
+    doctest.testmod( m = pi_file, verbose=True, optionflags=doctest.ELLIPSIS)
+    
+    
+    
+    
+    
