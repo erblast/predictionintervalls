@@ -9,6 +9,7 @@ pip install git+https://github.com/erblast/predintervals.git
 # Example
 ```
 import sklearn
+from sklearn.linear_model import LinearRegression
 import pandas as pd
 import predintervals as pi
 
