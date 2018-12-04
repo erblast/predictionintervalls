@@ -115,16 +115,26 @@ class PredIntervals():
                              , id = lambda x: list(x) ) ) \
             .reset_index()
         
-        # get predictions for each set of segmen/cut, Boot instances, observations
-        # and ids
-        df_predict = df_aggr \
-            .merge( self.fitted, on = 'cut') \
-            .assign( pred = lambda x: x.apply(
-                        lambda x: x['boot'].predict( x['obs'], x['id'] )
-                        , axis = 1 )
-                        )
+        # rejoin wirh self.fitted to get boot objects. We had to discard them
+        # because we cannot group on columns containing complex classes
+        
+        df_aggr = df_aggr \
+            .merge( self.fitted, on = 'cut')
+            
+        boot_results = []
+        
+        for cut in tqdm( df_aggr['cut'].values ):
+            
+            boot_cut = df_aggr.loc[ df_aggr['cut'] == cut, 'boot'].values[0]
+            obs_cut  = df_aggr.loc[ df_aggr['cut'] == cut, 'obs'].values[0]
+            ids_cut  = df_aggr.loc[ df_aggr['cut'] == cut, 'id'].values[0]
+            
+            df_ecdf = boot_cut.predict(obs_cut, ids_cut)
+            
+            boot_results.append(df_ecdf)
+            
         # the boot instances return a dataframe which can be concatenated into one
-        df_concat = pd.concat( df_predict['pred'].tolist() )
+        df_concat = pd.concat( boot_results )
         
         # merge predictions and ids back in
         
@@ -179,5 +189,4 @@ if __name__ == '__main__':
     predintervals.fit( y, pred )
 
     predintervals.predict( y, pred )
-    
     
