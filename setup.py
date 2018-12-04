@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='predintervals',
-      version='0.0.2',
+      version='0.0.3',
       description='calculate prediction intervals for a given set of predicted and observed values',
       url='https://github.com/erblast/predintervals',
       author='Bjoern Koneswarakantha',

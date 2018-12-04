@@ -248,12 +248,14 @@ class Boot():
             .reset_index(drop = True)
             
         df_id = df_id \
+            .loc[:,['values','id']] \
             .sort_values('id') \
             .reset_index(drop = True)
             
         assert df_test.equals( df_id )
-            
+        
         return df
+            
              
 
 if __name__ == '__main__':
@@ -265,11 +267,10 @@ if __name__ == '__main__':
 
     boot.fit(x)
     
-    print(boot.me)
-    print(boot.sd)
-    print(boot.quantiles)
-    print(len( boot.ecdfs ) )
-    print( boot.ecdfs[0] )
-    
-    print(boot.predict(x))
+    boot.me
+    boot.sd
+    boot.quantiles
+    len( boot.ecdfs )
+    boot.ecdfs[0]
+    print( boot.predict(x) )
     
