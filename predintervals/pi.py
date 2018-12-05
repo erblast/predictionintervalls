@@ -102,6 +102,24 @@ class PredIntervals():
         
         df = pd.DataFrame( dict( obs = obs, pred = pred, id = ids) )
         
+        # if dtype == int it will be converted to float for some reason
+        # so we capture dtype here to convert back later
+        id_dtype = df['id'].dtype
+        
+        # bring min and max prediction to training level
+        
+        pred_min_fit = self.fitted['pred_min'].min()
+        pred_max_fit = self.fitted['pred_max'].max()
+        
+        def adjust_extremes_to_fitted(x):
+            
+            if x > pred_max_fit: x = pred_max_fit
+            if x < pred_min_fit: x = pred_min_fit
+            
+            return x
+            
+        df['pred'] = df['pred'].apply(adjust_extremes_to_fitted)
+        
         # merge with self.fitted which contains the segments(cut) and a Boot object
         # for each segment
         df_merge = pd.merge_asof(df.sort_values('pred')
@@ -136,7 +154,7 @@ class PredIntervals():
         # the boot instances return a dataframe which can be concatenated into one
         df_concat = pd.concat( boot_results )
         
-        # merge predictions and ids back in
+        # merge predictions and ids back in--------------------------------
         
         col = ['id','cut', 'boot_stat', 'pred', 'obs']
         col.extend( df_concat.columns.tolist()[3:-1] )
@@ -147,17 +165,21 @@ class PredIntervals():
             .sort_values('id') \
             .reset_index(drop = True)
             
-        # test correct id incorporation
+        # test correct id incorporation--------------------------------------
         assert df_final.shape[0] == len(obs) * 2
+        # # debug code in case of assertion violation
+        # print(df_final.shape[0])
+        # print(len(obs) * 2)
         
-        df_test = df_final.loc[:,['pred', 'obs','id']] \
+        df_test = df_final.loc[:,['pred', 'obs', 'id']] \
             .assign( n = None ) \
             .groupby(['pred', 'obs','id']) \
             .aggregate( dict(n = 'size') ) \
             .reset_index() \
             .loc[:,['pred', 'obs','id']] \
             .sort_values('id') \
-            .reset_index(drop = True)
+            .reset_index(drop = True) \
+            .assign( id = lambda x : x['id'].astype(id_dtype) )
             
         df_id = df \
             .loc[:,['pred', 'obs','id']] \
@@ -165,6 +187,15 @@ class PredIntervals():
             .reset_index(drop = True)
             
         assert df_test.equals( df_id )
+        # # debug in case of assertion violation
+        # print( df_test.equals( df_id ))
+        # print( df_test.head(10) )
+        # print( df_id.head(10) )
+        # print( df_test.tail(10) )
+        # print( df_id.tail(10) )
+        # print( df_test.shape )
+        # print( df_id.shape )
+        # return df_final, df_concat, df_merge, df_aggr
         
         return df_final
 
@@ -172,21 +203,37 @@ class PredIntervals():
 if __name__ == '__main__':
     
     boston = sklearn.datasets.load_boston()
-
     boston.keys()
-
     X = boston.data
     y = boston.target
-
     reg = LinearRegression()
-
     reg.fit(X,y)
-
     pred = reg.predict(X)
-
-    predintervals = pi.PredIntervals()
-
+    
+    predintervals = PredIntervals()
     predintervals.fit( y, pred )
-
     predintervals.predict( y, pred )
+        
+    # feather example
+
+    # df_trans = pd.read_feather('df_trans.feather') \
+    #     .reset_index()
+    #
+    # df_train = df_trans.query( 'data_set == "valid" & percentage == "10percent" & is_simulated == "no"') \
+    #     .loc[:,['id', 'prediction', 'n_ae']]
+    #
+    # predintervals = PredIntervals()
+    #
+    #
+    # predintervals.fit( obs = df_train['n_ae'], pred = df_train['prediction'] )
+    #
+    # predintervals.fitted
+    #
+    # # df_trans_sample = df_trans.iloc[0:100,:]
+    # df_trans_sample = df_trans
+    #
+    # df_ecdf_pred = predintervals.predict( obs = df_trans_sample['n_ae']
+    #                                      , pred = df_trans_sample['prediction']
+    #                                      , ids = df_trans_sample['index'])
+    # print(df_ecdf_pred)
     

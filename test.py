@@ -1,26 +1,18 @@
 
 
-
-
-import sys
-sys.path.append('./predintervals')
-
-import boot as b_file
-import pi as pi_file
-
+import sklearn
+from sklearn.linear_model import LinearRegression
+import pandas as pd
 import predintervals as pi
 
-import doctest
+boston = sklearn.datasets.load_boston()
+boston.keys()
+X = boston.data
+y = boston.target
+reg = LinearRegression()
+reg.fit(X,y)
+pred = reg.predict(X)
 
-if __name__ == '__main__':
-    
-
-    doctest.testmod( m = b_file, verbose=True
-                    , optionflags=doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE
-                    )
-    doctest.testmod( m = pi_file, verbose=True, optionflags=doctest.ELLIPSIS)
-    
-    
-    
-    
-    
+predintervals = pi.PredIntervals()
+predintervals.fit( y, pred )
+predintervals.predict( y, pred )
